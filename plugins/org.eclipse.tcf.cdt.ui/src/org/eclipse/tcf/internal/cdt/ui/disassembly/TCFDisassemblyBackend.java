@@ -510,9 +510,29 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                     fCallback.setUpdatePending(false);
                     return;
                 }
+                final int addr_bits = mem.getAddressSize() * 8;
+                int accessSize = 0;
+                BigInteger bit = new BigInteger("1");
+                BigInteger mem_end = bit.shiftLeft(addr_bits);
+                mem_end = mem_end.subtract(bit);
+
+                if (startAddress.compareTo(mem_end) > 0) {
+                    fCallback.setUpdatePending(false);
+                    return;
+                }
+
+                BigInteger requestedLineEndAddr = startAddress.add(BigInteger.valueOf(linesHint * mem.getAddressSize()));
+
+                if (requestedLineEndAddr.compareTo(mem_end) > 0) {
+                    accessSize = mem_end.subtract(startAddress).intValue() + 1;
+                }
+                else {
+                    accessSize = linesHint * mem.getAddressSize();
+                }
+
                 final String contextId = mem.getID();
                 Map<String, Object> params = new HashMap<String, Object>();
-                disass.disassemble(contextId, startAddress, linesHint * 4, params, new DoneDisassemble() {
+                disass.disassemble(contextId, startAddress, accessSize, params, new DoneDisassemble() {
                     public void doneDisassemble(IToken token, final Throwable error, IDisassemblyLine[] disassembly) {
                         if (execContext != fExecContext) return;
                         if (error != null) {
@@ -522,7 +542,6 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                                     if (modCount == getModCount()) {
                                         fCallback.insertError(startAddress, TCFModel.getErrorMessage(error, false));
                                         fCallback.setUpdatePending(false);
-                                        int addr_bits = mem.getAddressSize() * 8;
                                         if (fCallback.getAddressSize() < addr_bits) fCallback.addressSizeChanged(addr_bits);
                                     }
                                 }
