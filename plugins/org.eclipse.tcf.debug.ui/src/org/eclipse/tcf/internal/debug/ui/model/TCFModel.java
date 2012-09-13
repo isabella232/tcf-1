@@ -81,6 +81,8 @@ import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.tcf.core.Command;
+import org.eclipse.tcf.debug.ui.ITCFSourceDisplay;
 import org.eclipse.tcf.internal.debug.actions.TCFAction;
 import org.eclipse.tcf.internal.debug.launch.TCFSourceLookupDirector;
 import org.eclipse.tcf.internal.debug.launch.TCFSourceLookupParticipant;
@@ -103,8 +105,6 @@ import org.eclipse.tcf.internal.debug.ui.commands.StepReturnCommand;
 import org.eclipse.tcf.internal.debug.ui.commands.SuspendCommand;
 import org.eclipse.tcf.internal.debug.ui.commands.TerminateCommand;
 import org.eclipse.tcf.internal.debug.ui.preferences.TCFPreferences;
-import org.eclipse.tcf.core.Command;
-import org.eclipse.tcf.debug.ui.ITCFSourceDisplay;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IErrorReport;
 import org.eclipse.tcf.protocol.IService;
@@ -287,8 +287,6 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
     private final Map<String,String> cast_to_type_map = new HashMap<String,String>();
 
     private final Map<String,Object> context_map = new HashMap<String,Object>();
-
-    private final Set<String> expanded_nodes = new HashSet<String>();
 
     private final Map<IWorkbenchPart,TCFNode> pins = new HashMap<IWorkbenchPart,TCFNode>();
     private final Map<IWorkbenchPart,TCFSnapshot> locks = new HashMap<IWorkbenchPart,TCFSnapshot>();
@@ -898,7 +896,9 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
             action_results.remove(id);
             Object o = context_map.remove(id);
             if (o instanceof CreateNodeRunnable) ((CreateNodeRunnable)o).onContextRemoved();
-            expanded_nodes.remove(id);
+            for (TCFModelProxy proxy : model_proxies.values()) {
+                proxy.clearAutoExpandStack(id);
+            }
             if (mem_blocks_update != null) mem_blocks_update.changeset.remove(id);
         }
         launch_node.onAnyContextAddedOrRemoved();
@@ -1488,14 +1488,16 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
         if (node.isDisposed()) return;
         runSuspendTrigger(node);
         if (reason == null) return;
-        if (reason.equals(IRunControl.REASON_USER_REQUEST)) return;
         for (TCFModelProxy proxy : model_proxies.values()) {
             if (proxy.getPresentationContext().getId().equals(IDebugUIConstants.ID_DEBUG_VIEW)) {
+                boolean user_request =
+                    reason.equals(IRunControl.REASON_USER_REQUEST) ||
+                    reason.equals(IRunControl.REASON_STEP) ||
+                    reason.equals(IRunControl.REASON_CONTAINER) ||
+                    delay_stack_update_until_last_step && launch.getContextActionsCount(node.id) != 0;
+                if (proxy.getAutoExpandNode(node.id, user_request)) proxy.expand(node);
+                if (reason.equals(IRunControl.REASON_USER_REQUEST)) continue;
                 proxy.setSelection(node);
-                if (reason.equals(IRunControl.REASON_STEP)) continue;
-                if (reason.equals(IRunControl.REASON_CONTAINER)) continue;
-                if (delay_stack_update_until_last_step && launch.getContextActionsCount(node.id) != 0) continue;
-                if (expanded_nodes.add(node.id)) proxy.expand(node);
             }
             if (reason.equals(IRunControl.REASON_BREAKPOINT)) {
                 IWorkbenchPart part = proxy.getPresentationContext().getPart();
