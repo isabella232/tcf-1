@@ -35,10 +35,10 @@ import org.eclipse.jface.viewers.ICellModifier;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
 import org.eclipse.tcf.internal.debug.ui.Activator;
+import org.eclipse.tcf.internal.debug.ui.ColorCache;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
@@ -77,11 +77,6 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     private IExpressions.Value prev_value;
     private IExpressions.Value next_value;
     private byte[] parent_value;
-
-    private static final RGB
-        rgb_error = new RGB(192, 0, 0),
-        rgb_highlight = new RGB(255, 255, 128),
-        rgb_disabled = new RGB(127, 127, 127);
 
     private static int expr_cnt;
 
@@ -1064,7 +1059,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             String[] cols = result.getColumnIds();
             if (error != null) {
                 if (cols == null || cols.length <= 1) {
-                    result.setForeground(rgb_error, 0);
+                    result.setForeground(ColorCache.rgb_error, 0);
                     result.setLabel(name + ": N/A", 0);
                 }
                 else {
@@ -1078,7 +1073,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                             result.setLabel(type_name.getData(), i);
                         }
                         else {
-                            result.setForeground(rgb_error, i);
+                            result.setForeground(ColorCache.rgb_error, i);
                             result.setLabel("N/A", i);
                         }
                     }
@@ -1109,10 +1104,10 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             }
             next_value = value.getData();
             if (isValueChanged(prev_value, next_value)) {
-                result.setBackground(rgb_highlight, 0);
+                result.setBackground(ColorCache.rgb_highlight, 0);
                 if (cols != null) {
                     for (int i = 1; i < cols.length; i++) {
-                        result.setBackground(rgb_highlight, i);
+                        result.setBackground(ColorCache.rgb_highlight, i);
                     }
                 }
             }
@@ -1136,14 +1131,14 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         else {
             String[] cols = result.getColumnIds();
             if (cols == null || cols.length <= 1) {
-                result.setForeground(rgb_disabled, 0);
+                result.setForeground(ColorCache.rgb_disabled, 0);
                 result.setLabel(script, 0);
             }
             else {
                 for (int i = 0; i < cols.length; i++) {
                     String c = cols[i];
                     if (c.equals(TCFColumnPresentationExpression.COL_NAME)) {
-                        result.setForeground(rgb_disabled, i);
+                        result.setForeground(ColorCache.rgb_disabled, i);
                         result.setLabel(script, i);
                     }
                 }
@@ -1318,8 +1313,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 bf.append('\n');
             }
             else if (e != null) {
-                bf.append("Cannot read pointed value: ", SWT.BOLD, null, rgb_error);
-                bf.append(TCFModel.getErrorMessage(e, false), SWT.ITALIC, null, rgb_error);
+                bf.append("Cannot read pointed value: ", SWT.BOLD, null, ColorCache.rgb_error);
+                bf.append(TCFModel.getErrorMessage(string.getError(), false), SWT.ITALIC, null, ColorCache.rgb_error);
                 bf.append('\n');
             }
         }
@@ -1434,8 +1429,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         if (!expression.validate(done)) return false;
         if (!value.validate(done)) return false;
         int pos = bf.length();
-        bf.append(expression.getError(), rgb_error);
-        if (bf.length() == pos) bf.append(value.getError(), rgb_error);
+        bf.append(expression.getError(), ColorCache.rgb_error);
+        if (bf.length() == pos) bf.append(value.getError(), ColorCache.rgb_error);
         if (bf.length() == pos) {
             IExpressions.Value v = value.getData();
             if (v != null) {

@@ -29,11 +29,11 @@ import org.eclipse.debug.internal.ui.viewers.model.provisional.IViewerInputUpdat
 import org.eclipse.debug.ui.IDebugUIConstants;
 import org.eclipse.debug.ui.memory.IMemoryRenderingSite;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
 import org.eclipse.tcf.internal.debug.model.TCFFunctionRef;
 import org.eclipse.tcf.internal.debug.model.TCFSourceRef;
 import org.eclipse.tcf.internal.debug.model.TCFSymFileRef;
+import org.eclipse.tcf.internal.debug.ui.ColorCache;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.JSON;
@@ -1036,7 +1036,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner {
         StringBuffer label = new StringBuffer();
         Throwable error = run_context.getError();
         if (error != null) {
-            result.setForeground(new RGB(255, 0, 0), 0);
+            result.setForeground(ColorCache.rgb_error, 0);
             label.append(id);
             label.append(": ");
             label.append(TCFModel.getErrorMessage(error, false));
