@@ -37,7 +37,7 @@ public class Activator implements  BundleActivator {
                     // exception in case the bundle is not in RESOLVED state. Trigger
                     // the bundle activation via the loadClass method is apparently safer.
                     bundle.loadClass("org.eclipse.tcf.Activator");
-					cnt++;
+                    cnt++;
                 }
             }
         }
