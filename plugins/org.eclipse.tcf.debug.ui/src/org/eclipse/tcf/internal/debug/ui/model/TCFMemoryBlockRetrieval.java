@@ -499,7 +499,10 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
         if (mem_blocks.size() == 0) return;
         ArrayList<DebugEvent> list = new ArrayList<DebugEvent>();
         for (MemoryBlock b : mem_blocks) {
-            if (suspended) b.mem_prev = b.mem_last;
+            if (suspended) { 
+                b.mem_prev = b.mem_last;
+                list.add(new DebugEvent(b, DebugEvent.SUSPEND, DebugEvent.CONTENT));
+            }
             b.mem_data = null;
             list.add(new DebugEvent(b, DebugEvent.CHANGE, DebugEvent.CONTENT));
         }
