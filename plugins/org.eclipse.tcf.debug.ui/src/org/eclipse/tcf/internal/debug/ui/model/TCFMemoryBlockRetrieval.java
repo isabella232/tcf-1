@@ -34,8 +34,8 @@ import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IExpressions;
 import org.eclipse.tcf.services.IMemory;
-import org.eclipse.tcf.services.ISymbols;
 import org.eclipse.tcf.services.IMemory.MemoryError;
+import org.eclipse.tcf.services.ISymbols;
 import org.eclipse.tcf.util.TCFDataCache;
 
 /**
@@ -473,7 +473,12 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
     public IMemoryBlockExtension getExtendedMemoryBlock(final String expression, Object context) throws DebugException {
         return new TCFDebugTask<IMemoryBlockExtension>() {
             public void run() {
-                done(new MemoryBlock(expression, -1));
+                if (!exec_ctx.getMemoryContext().validate(this)) return;
+                if (exec_ctx.getMemoryContext().getError() != null) {
+                    error(exec_ctx.getMemoryContext().getError());
+                } else {
+                    done(new MemoryBlock(expression, -1));
+                }
             }
         }.getD();
     }
@@ -481,7 +486,12 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
     public IMemoryBlock getMemoryBlock(final long address, final long length) throws DebugException {
         return new TCFDebugTask<IMemoryBlockExtension>() {
             public void run() {
-                done(new MemoryBlock("0x" + Long.toHexString(address), length));
+                if (!exec_ctx.getMemoryContext().validate(this)) return;
+                if (exec_ctx.getMemoryContext().getError() != null) {
+                    error(exec_ctx.getMemoryContext().getError());
+                } else {
+                    done(new MemoryBlock("0x" + Long.toHexString(address), length));
+                }
             }
         }.getD();
     }

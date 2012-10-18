@@ -717,11 +717,14 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
                         if (!cache.validate(this)) return;
                         if (cache.getData() != null) {
                             TCFNodeExecContext ctx = cache.getData();
-                            o = mem_retrieval.get(ctx.id);
-                            if (o == null) {
-                                TCFMemoryBlockRetrieval m = new TCFMemoryBlockRetrieval(ctx);
-                                mem_retrieval.put(ctx.id, m);
-                                o = m;
+                            if (!ctx.getMemoryContext().validate(this)) return;
+                            if (ctx.getMemoryContext().getError() == null) {
+                                o = mem_retrieval.get(ctx.id);
+                                if (o == null) {
+                                    TCFMemoryBlockRetrieval m = new TCFMemoryBlockRetrieval(ctx);
+                                    mem_retrieval.put(ctx.id, m);
+                                    o = m;
+                                }
                             }
                         }
                     }
