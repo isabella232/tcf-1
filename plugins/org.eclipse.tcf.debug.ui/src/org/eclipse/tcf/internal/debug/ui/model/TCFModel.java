@@ -215,8 +215,7 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
     private final Map<String,String> action_results = new HashMap<String,String>();
     private final HashMap<String,TCFAction> active_actions = new HashMap<String,TCFAction>();
 
-    private final Map<IPresentationContext,TCFModelProxy> model_proxies =
-        new HashMap<IPresentationContext,TCFModelProxy>();
+    private final List<TCFModelProxy> model_proxies = new ArrayList<TCFModelProxy>();
 
     private final Map<String,TCFNode> id2node = new HashMap<String,TCFNode>();
 
@@ -539,7 +538,7 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
                             ((TCFNodeExecContext)n).onExpressionAddedOrRemoved();
                         }
                     }
-                    for (TCFModelProxy p : model_proxies.values()) {
+                    for (TCFModelProxy p : model_proxies) {
                         String id = p.getPresentationContext().getId();
                         if (IDebugUIConstants.ID_EXPRESSION_VIEW.equals(id)) {
                             Object o = p.getInput();
@@ -575,7 +574,7 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
                 ((TCFNodeExecContext)node).onContextActionDone();
             }
             setDebugViewSelection(id2node.get(id), "Action");
-            for (TCFModelProxy p : model_proxies.values()) p.post();
+            for (TCFModelProxy p : model_proxies) p.post();
             annotation_manager.updateAnnotations(null, launch);
             TCFNodePropertySource.refresh(node);
         }
@@ -752,7 +751,7 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
         IProcesses prs = launch.getService(IProcesses.class);
         if (prs != null) prs.addListener(prs_listener);
         launchChanged();
-        for (TCFModelProxy p : model_proxies.values()) {
+        for (TCFModelProxy p : model_proxies) {
             String id = p.getPresentationContext().getId();
             if (IDebugUIConstants.ID_DEBUG_VIEW.equals(id)) {
                 Protocol.invokeLater(new InitialSelection());
@@ -877,16 +876,14 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
 
     void onProxyInstalled(TCFModelProxy mp) {
         IPresentationContext pc = mp.getPresentationContext();
-        model_proxies.put(mp.getPresentationContext(), mp);
+        model_proxies.add(mp);
         if (launch_node != null && pc.getId().equals(IDebugUIConstants.ID_DEBUG_VIEW)) {
             Protocol.invokeLater(new InitialSelection());
         }
     }
 
     void onProxyDisposed(TCFModelProxy mp) {
-        IPresentationContext ctx = mp.getPresentationContext();
-        assert model_proxies.get(ctx) == mp;
-        model_proxies.remove(ctx);
+        model_proxies.remove(mp);
     }
 
     private void onContextRemoved(String[] context_ids) {
@@ -894,12 +891,12 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
             TCFNode node = getNode(id);
             if (node instanceof TCFNodeExecContext) {
                 ((TCFNodeExecContext)node).onContextRemoved();
-                for (TCFModelProxy p : model_proxies.values()) p.saveExpandState(node);
+                for (TCFModelProxy p : model_proxies) p.saveExpandState(node);
             }
             action_results.remove(id);
             Object o = context_map.remove(id);
             if (o instanceof CreateNodeRunnable) ((CreateNodeRunnable)o).onContextRemoved();
-            for (TCFModelProxy proxy : model_proxies.values()) {
+            for (TCFModelProxy proxy : model_proxies) {
                 proxy.clearAutoExpandStack(id);
             }
             if (mem_blocks_update != null) mem_blocks_update.changeset.remove(id);
@@ -935,7 +932,7 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
 
     void launchChanged() {
         if (launch_node != null) {
-            for (TCFModelProxy p : model_proxies.values()) {
+            for (TCFModelProxy p : model_proxies) {
                 String id = p.getPresentationContext().getId();
                 if (IDebugUIConstants.ID_DEBUG_VIEW.equals(id)) {
                     p.addDelta(launch_node, IModelDelta.STATE | IModelDelta.CONTENT);
@@ -948,7 +945,7 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
     }
 
     Collection<TCFModelProxy> getModelProxies() {
-        return model_proxies.values();
+        return model_proxies;
     }
 
     void dispose() {
@@ -1422,9 +1419,11 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
         IPresentationContext ctx = getPresentationContext(part);
         if (ctx == null) return;
         locks.put(part, new TCFSnapshot(ctx));
-        TCFModelProxy proxy = model_proxies.get(ctx);
-        if (proxy == null) return;
-        proxy.addDelta((TCFNode)proxy.getInput(), IModelDelta.CONTENT);
+        for (TCFModelProxy proxy : model_proxies) {
+            if (ctx.equals(proxy.getPresentationContext())) {
+                proxy.addDelta((TCFNode)proxy.getInput(), IModelDelta.CONTENT);
+            }
+        }
     }
 
     public boolean isLocked(IWorkbenchPart part) {
@@ -1437,8 +1436,11 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
         snapshot.dispose();
         IPresentationContext ctx = getPresentationContext(part);
         if (ctx != null) {
-            TCFModelProxy proxy = model_proxies.get(ctx);
-            if (proxy != null) proxy.addDelta((TCFNode)proxy.getInput(), IModelDelta.CONTENT);
+            for (TCFModelProxy proxy : model_proxies) {
+                if (ctx.equals(proxy.getPresentationContext())) {
+                    proxy.addDelta((TCFNode)proxy.getInput(), IModelDelta.CONTENT);
+                }
+            }
         }
         return true;
     }
@@ -1491,7 +1493,7 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
         if (node.isDisposed()) return;
         runSuspendTrigger(node);
         if (reason == null) return;
-        for (TCFModelProxy proxy : model_proxies.values()) {
+        for (TCFModelProxy proxy : model_proxies) {
             if (proxy.getPresentationContext().getId().equals(IDebugUIConstants.ID_DEBUG_VIEW)) {
                 boolean user_request =
                     reason.equals(IRunControl.REASON_USER_REQUEST) ||
