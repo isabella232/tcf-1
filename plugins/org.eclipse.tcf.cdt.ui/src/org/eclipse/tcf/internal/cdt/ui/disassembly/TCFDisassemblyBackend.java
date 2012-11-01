@@ -79,6 +79,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
         BigInteger start;
         BigInteger end;
     }
+
     private static class FunctionOffset {
         static final FunctionOffset NONE = new FunctionOffset(null, null);
         String name;
@@ -97,6 +98,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
             return offset == null || offset.compareTo(BigInteger.ZERO) == 0;
         }
     }
+
     private class TCFLaunchListener implements ILaunchesListener {
 
         public void launchesRemoved(ILaunch[] launches) {
@@ -106,9 +108,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
         }
 
         public void launchesChanged(ILaunch[] launches) {
-            if(fExecContext == null) {
-                return;
-            }
+            if (fExecContext == null) return;
             for (ILaunch launch : launches) {
                 if (launch == fExecContext.getModel().getLaunch()) {
                     if (launch.isTerminated()) {
@@ -160,7 +160,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
 
         public void contextResumed(String context) {
             if (fExecContext.getID().equals(context)) {
-                fCallback.handleTargetResumed();
+                handleContextResumed();
             }
         }
 
@@ -184,7 +184,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
             String id = fExecContext.getID();
             for (String contextId : context_ids) {
                 if (id.equals(contextId)) {
-                    fCallback.handleTargetResumed();
+                    handleContextResumed();
                     return;
                 }
             }
@@ -192,10 +192,10 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
 
         public void contextException(String context, String msg) {
         }
-
     }
 
     private IDisassemblyPartCallback fCallback;
+    private volatile boolean fSuspended;
     private volatile TCFNodeExecContext fExecContext;
     private volatile TCFNodeExecContext fMemoryContext;
     private volatile TCFNodeStackFrame fActiveFrame;
@@ -234,48 +234,56 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
         return fExecContext != null;
     }
 
-    public SetDebugContextResult setDebugContext(IAdaptable context) {
-        TCFNodeExecContext newContext = null;
-        TCFNodeStackFrame frame = null;
+    public SetDebugContextResult setDebugContext(final IAdaptable context) {
+        TCFNodeExecContext thread = null;
         SetDebugContextResult result = new SetDebugContextResult();
         if (context instanceof TCFNodeExecContext) {
-            newContext = (TCFNodeExecContext)context;
-            final TCFNodeExecContext _execContext = newContext;
-            frame = new TCFTask<TCFNodeStackFrame>(_execContext.getChannel()) {
-                public void run() {
-                    TCFChildrenStackTrace stack = _execContext.getStackTrace();
-                    if (!stack.validate(this)) return;
-                    done(stack.getTopFrame());
-                }
-            }.getE();
-            if (frame == null) newContext = null;
+            thread = (TCFNodeExecContext)context;
         }
         else if (context instanceof TCFNodeStackFrame) {
-            frame = (TCFNodeStackFrame)context;
-            newContext = (TCFNodeExecContext)frame.getParent();
+            thread = (TCFNodeExecContext)((TCFNodeStackFrame)context).getParent();
         }
 
-        if (fExecContext != newContext) {
+        if (fExecContext != thread) {
             result.contextChanged = true;
             fSuspendCount++;
             if (fExecContext != null) removeListeners(fExecContext);
-            fExecContext = newContext;
-            if (newContext != null) addListeners(newContext);
+            fExecContext = thread;
+            if (fExecContext != null) addListeners(fExecContext);
         }
+
+        fSuspended = false;
+        fMemoryContext = null;
+        fActiveFrame = null;
         if (fExecContext != null) {
-            fMemoryContext = new TCFTask<TCFNodeExecContext>() {
-                public void run() {
-                    TCFDataCache<TCFNodeExecContext> cache = fExecContext.getMemoryNode();
-                    if (!cache.validate(this)) return;
-                    done(cache.getData());
-                }
-            }.getE();
+            IChannel channel = thread.getChannel();
+            try {
+                 new TCFTask<Object>(fExecContext.getChannel()) {
+                    public void run() {
+                        TCFDataCache<TCFNodeExecContext> mem_cache = fExecContext.getMemoryNode();
+                        if (!mem_cache.validate(this)) return;
+                        TCFDataCache<TCFContextState> state_cache = fExecContext.getState();
+                        if (!state_cache.validate(this)) return;
+                        if (context instanceof TCFNodeExecContext) {
+                            TCFChildrenStackTrace stack = ((TCFNodeExecContext)context).getStackTrace();
+                            if (!stack.validate(this)) return;
+                            fActiveFrame = stack.getTopFrame();
+                        }
+                        else if (context instanceof TCFNodeStackFrame) {
+                            fActiveFrame = (TCFNodeStackFrame)context;
+                        }
+                        TCFContextState state_data = state_cache.getData();
+                        fSuspended = state_data != null && state_data.is_suspended;
+                        fMemoryContext = mem_cache.getData();
+                        done(null);
+                    }
+                }.getE();
+            }
+            catch (Error x) {
+                if (channel.getState() == IChannel.STATE_OPEN) throw x;
+            }
         }
-        else {
-            fMemoryContext = null;
-        }
-        fActiveFrame = frame;
-        result.sessionId = newContext != null ? newContext.getID() : null;
+        result.sessionId = fExecContext != null ? fExecContext.getID() : null;
 
         if (!result.contextChanged && fActiveFrame != null) {
             fCallback.asyncExec(new Runnable() {
@@ -315,16 +323,24 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
     }
 
     private void handleContextSuspended(BigInteger pc) {
-        ++fSuspendCount;
+        fSuspendCount++;
+        fSuspended = true;
         fSuspendAddress = pc;
         fCallback.handleTargetSuspended();
     }
+
+    private void handleContextResumed() {
+        fSuspended = false;
+        fCallback.handleTargetResumed();
+    }
+
     private void handleSessionEnded() {
         clearDebugContext();
         fCallback.handleTargetEnded();
     }
 
     public void clearDebugContext() {
+        fSuspended = false;
         if (fExecContext != null) {
             removeListeners(fExecContext);
         }
@@ -396,33 +412,15 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
 
     public int getFrameLevel() {
         if (fActiveFrame == null) return -1;
-        Integer level = new TCFTask<Integer>() {
+        return new TCFTask<Integer>() {
             public void run() {
                 done(fActiveFrame != null ? fActiveFrame.getFrameNo() : -1);
             }
         }.getE();
-        return level != null ? level.intValue() : -1;
     }
 
     public boolean isSuspended() {
-        if (fExecContext == null) return false;
-        Boolean suspended = new TCFTask<Boolean>(fExecContext.getChannel()) {
-            public void run() {
-                if (fExecContext == null) {
-                    done(null);
-                    return;
-                }
-                TCFDataCache<TCFContextState> stateCache = fExecContext.getState();
-                if (!stateCache.validate(this)) return;
-                TCFContextState state = stateCache.getData();
-                if (state != null) {
-                    done(state.is_suspended);
-                    return;
-                }
-                done(null);
-            }
-        }.getE();
-        return suspended != null ? suspended.booleanValue() : false;
+        return fSuspended;
     }
 
     public boolean hasFrameContext() {
@@ -432,45 +430,39 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
     public String getFrameFile() {
         final TCFNodeStackFrame frame = fActiveFrame;
         if (frame == null) return null;
-        String file = new TCFTask<String>(frame.getChannel()) {
+        return new TCFTask<String>(frame.getChannel()) {
             public void run() {
-                if (frame != fActiveFrame) {
-                    done(null);
-                    return;
-                }
-                TCFDataCache<TCFSourceRef> sourceRefCache = frame.getLineInfo();
-                if (!sourceRefCache.validate(this)) return;
-                TCFSourceRef sourceRef = sourceRefCache.getData();
-                if (sourceRef != null && sourceRef.area != null) {
-                    done(TCFSourceLookupParticipant.toFileName(sourceRef.area));
-                    return;
+                if (frame == fActiveFrame) {
+                    TCFDataCache<TCFSourceRef> sourceRefCache = frame.getLineInfo();
+                    if (!sourceRefCache.validate(this)) return;
+                    TCFSourceRef sourceRef = sourceRefCache.getData();
+                    if (sourceRef != null && sourceRef.area != null) {
+                        done(TCFSourceLookupParticipant.toFileName(sourceRef.area));
+                        return;
+                    }
                 }
                 done(null);
             }
         }.getE();
-        return file;
     }
 
     public int getFrameLine() {
         final TCFNodeStackFrame frame = fActiveFrame;
         if (frame == null) return -1;
-        Integer line = new TCFTask<Integer>(frame.getChannel()) {
+        return new TCFTask<Integer>(frame.getChannel()) {
             public void run() {
-                if (frame != fActiveFrame) {
-                    done(null);
-                    return;
+                if (frame == fActiveFrame) {
+                    TCFDataCache<TCFSourceRef> sourceRefCache = frame.getLineInfo();
+                    if (!sourceRefCache.validate(this)) return;
+                    TCFSourceRef sourceRef = sourceRefCache.getData();
+                    if (sourceRef != null && sourceRef.area != null) {
+                        done(sourceRef.area.start_line);
+                        return;
+                    }
                 }
-                TCFDataCache<TCFSourceRef> sourceRefCache = frame.getLineInfo();
-                if (!sourceRefCache.validate(this)) return;
-                TCFSourceRef sourceRef = sourceRefCache.getData();
-                if (sourceRef != null && sourceRef.area != null) {
-                    done(sourceRef.area.start_line);
-                    return;
-                }
-                done(null);
+                done(-1);
             }
         }.getE();
-        return line != null ? line.intValue() : -1;
     }
 
     public void retrieveDisassembly(final BigInteger startAddress,
@@ -485,11 +477,21 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
         final int suspendCount = fSuspendCount;
         final long modCount = getModCount();
         Protocol.invokeLater(new Runnable() {
+
+            IMemory.MemoryContext mem;
+            boolean big_endian;
+            int addr_bits;
+            IDisassemblyLine[] disassembly;
+            AddressRange range;
+            boolean done_disassembly;
+            ISymbols.Symbol[] functionSymbols;
+            boolean done_symbols;
+            CodeArea[] code_areas;
+            boolean done_line_numbers;
+
             public void run() {
-                if (execContext != fExecContext) {
-                    return;
-                }
-                if (suspendCount != fSuspendCount) {
+                if (execContext != fExecContext)  return;
+                if (suspendCount != fSuspendCount || fMemoryContext == null) {
                     fCallback.setUpdatePending(false);
                     return;
                 }
@@ -499,18 +501,16 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                     fCallback.setUpdatePending(false);
                     return;
                 }
-                if (fMemoryContext == null) {
-                    fCallback.setUpdatePending(false);
-                    return;
-                }
                 TCFDataCache<IMemory.MemoryContext> cache = fMemoryContext.getMemoryContext();
                 if (!cache.validate(this)) return;
-                final IMemory.MemoryContext mem = cache.getData();
+                mem = cache.getData();
                 if (mem == null) {
                     fCallback.setUpdatePending(false);
                     return;
                 }
-                final int addr_bits = mem.getAddressSize() * 8;
+                big_endian = mem.isBigEndian();
+                addr_bits = mem.getAddressSize() * 8;
+
                 int accessSize = 0;
                 BigInteger bit = new BigInteger("1");
                 BigInteger mem_end = bit.shiftLeft(addr_bits);
@@ -530,40 +530,49 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                     accessSize = linesHint * mem.getAddressSize();
                 }
 
-                final String contextId = mem.getID();
-                Map<String, Object> params = new HashMap<String, Object>();
-                disass.disassemble(contextId, startAddress, accessSize, params, new DoneDisassemble() {
-                    public void doneDisassemble(IToken token, final Throwable error, IDisassemblyLine[] disassembly) {
-                        if (execContext != fExecContext) return;
-                        if (error != null) {
-                            fCallback.asyncExec(new Runnable() {
-                                public void run() {
-                                    if (execContext != fExecContext) return;
-                                    if (modCount == getModCount()) {
-                                        fCallback.insertError(startAddress, TCFModel.getErrorMessage(error, false));
-                                        fCallback.setUpdatePending(false);
-                                        if (fCallback.getAddressSize() < addr_bits) fCallback.addressSizeChanged(addr_bits);
+                if (!done_disassembly) {
+                    Map<String, Object> params = new HashMap<String, Object>();
+                    disass.disassemble(mem.getID(), startAddress, accessSize, params, new DoneDisassemble() {
+                        public void doneDisassemble(IToken token, final Throwable error, IDisassemblyLine[] res) {
+                            if (execContext != fExecContext) return;
+                            if (error != null) {
+                                fCallback.asyncExec(new Runnable() {
+                                    public void run() {
+                                        if (execContext != fExecContext) return;
+                                        if (modCount == getModCount()) {
+                                            fCallback.insertError(startAddress, TCFModel.getErrorMessage(error, false));
+                                            fCallback.setUpdatePending(false);
+                                            if (fCallback.getAddressSize() < addr_bits) fCallback.addressSizeChanged(addr_bits);
+                                        }
                                     }
-                                }
-                            });
-                            return;
+                                });
+                                return;
+                            }
+                            if (res != null && res.length > 0) {
+                                disassembly = res;
+                                range = new AddressRange();
+                                range.start = JSON.toBigInteger(res[0].getAddress());
+                                IDisassemblyLine last = res[res.length - 1];
+                                range.end = JSON.toBigInteger(last.getAddress()).add(BigInteger.valueOf(last.getSize()));
+                            }
+                            done_disassembly = true;
+                            run();
                         }
-                        doneGetDisassembly(disassembly);
+                    });
+                    return;
+                }
+                if (!done_symbols && (range == null || !showSymbols)) {
+                    done_symbols = true;
+                }
+                if (!done_symbols) {
+                    final ISymbols symbols = channel.getRemoteService(ISymbols.class);
+                    if (symbols == null) {
+                        done_symbols = true;
                     }
-
-                    private void doneGetDisassembly(final IDisassemblyLine[] disassembly) {
-                        if (disassembly == null || disassembly.length == 0 || !showSymbols) {
-                            doneGetSymbols(disassembly, null);
-                            return;
-                        }
-                        final ISymbols symbols = channel.getRemoteService(ISymbols.class);
-                        if (symbols == null) {
-                            doneGetSymbols(disassembly, null);
-                            return;
-                        }
+                    else {
                         final ArrayList<ISymbols.Symbol> symbolList = new ArrayList<ISymbols.Symbol>();
                         IDisassemblyLine line = disassembly[0];
-                        symbols.findByAddr(contextId, line.getAddress(), new ISymbols.DoneFind() {
+                        symbols.findByAddr(mem.getID(), line.getAddress(), new ISymbols.DoneFind() {
                             int idx = 0;
                             public void doneFind(IToken token, Exception error, String symbol_id) {
                                 if (error == null && symbol_id != null) {
@@ -571,8 +580,8 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                                         public void doneGetContext(IToken token, Exception error, ISymbols.Symbol context) {
                                             BigInteger nextAddress = null;
                                             if (error == null && context != null) {
-                                                if (context.getTypeClass().equals(ISymbols.TypeClass.function) && 
-                                                    context.getAddress() != null && context.getSize() >= 0) 
+                                                if (context.getTypeClass().equals(ISymbols.TypeClass.function) &&
+                                                    context.getAddress() != null && context.getSize() >= 0)
                                                 {
                                                     symbolList.add(context);
                                                     nextAddress = JSON.toBigInteger(context.getAddress()).add(BigInteger.valueOf(context.getSize()));
@@ -589,56 +598,47 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                                 while (++idx < disassembly.length) {
                                     BigInteger instrAddress = JSON.toBigInteger(disassembly[idx].getAddress());
                                     if (nextAddress != null && instrAddress.compareTo(nextAddress) < 0) continue;
-                                    symbols.findByAddr(contextId, instrAddress, this);
+                                    symbols.findByAddr(mem.getID(), instrAddress, this);
                                     return;
                                 }
-                                ISymbols.Symbol[] functionSymbols =
-                                    symbolList.toArray(new ISymbols.Symbol[symbolList.size()]);
-                                doneGetSymbols(disassembly, functionSymbols);
+                                functionSymbols = symbolList.toArray(new ISymbols.Symbol[symbolList.size()]);
+                                done_symbols = true;
+                                run();
                             }
                         });
+                        return;
                     }
-
-                    private void doneGetSymbols(final IDisassemblyLine[] disassembly, final ISymbols.Symbol[] symbols) {
-                        if (disassembly == null || disassembly.length == 0 || !mixed) {
-                            doneGetLineNumbers(disassembly, symbols, null);
-                            return;
-                        }
-                        ILineNumbers lineNumbers = channel.getRemoteService(ILineNumbers.class);
-                        if (lineNumbers == null) {
-                            doneGetLineNumbers(disassembly, symbols, null);
-                            return;
-                        }
-                        AddressRange range = getAddressRange(disassembly);
-                        lineNumbers.mapToSource(contextId, range.start, range.end, new DoneMapToSource() {
+                }
+                if (!done_line_numbers && (range == null || !mixed)) {
+                    done_line_numbers = true;
+                }
+                if (!done_line_numbers) {
+                    ILineNumbers lineNumbers = channel.getRemoteService(ILineNumbers.class);
+                    if (lineNumbers == null) {
+                        done_line_numbers = true;
+                    }
+                    else {
+                        lineNumbers.mapToSource(mem.getID(), range.start, range.end, new DoneMapToSource() {
                             public void doneMapToSource(IToken token, Exception error, final CodeArea[] areas) {
                                 if (error != null) {
                                     Activator.log(error);
-                                    doneGetLineNumbers(disassembly, symbols, null);
                                 }
                                 else {
-                                    doneGetLineNumbers(disassembly, symbols, areas);
+                                    code_areas = areas;
                                 }
+                                done_line_numbers = true;
+                                run();
                             }
                         });
+                        return;
                     }
-
-                    private void doneGetLineNumbers(final IDisassemblyLine[] disassembly, final ISymbols.Symbol[] symbols, final CodeArea[] areas) {
-                        fCallback.asyncExec(new Runnable() {
-                            public void run() {
-                                insertDisassembly(modCount, startAddress, disassembly, symbols, areas);
-                                int addr_bits = mem.getAddressSize() * 8;
-                                if (fCallback.getAddressSize() < addr_bits) fCallback.addressSizeChanged(addr_bits);
-                            }
-                        });
-                    }
-
-                    private AddressRange getAddressRange(IDisassemblyLine[] lines) {
-                        AddressRange range = new AddressRange();
-                        range.start = JSON.toBigInteger(lines[0].getAddress());
-                        IDisassemblyLine lastLine = lines[lines.length-1];
-                        range.end = JSON.toBigInteger(lastLine.getAddress()).add(BigInteger.valueOf(lastLine.getSize()));
-                        return range;
+                }
+                
+                fCallback.asyncExec(new Runnable() {
+                    public void run() {
+                        insertDisassembly(modCount, startAddress, range, big_endian,
+                                disassembly, functionSymbols, code_areas);
+                        if (fCallback.getAddressSize() < addr_bits) fCallback.addressSizeChanged(addr_bits);
                     }
                 });
             }
@@ -649,7 +649,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
         return ((IDocumentExtension4) fCallback.getDocument()).getModificationStamp();
     }
 
-    protected final void insertDisassembly(long modCount, BigInteger startAddress,
+    protected final void insertDisassembly(long modCount, BigInteger startAddress, AddressRange range, boolean big_endian,
             IDisassemblyLine[] instructions, ISymbols.Symbol[] symbols, CodeArea[] codeAreas) {
         if (!fCallback.hasViewer() || fExecContext == null) return;
         if (modCount != getModCount()) return;
@@ -729,8 +729,9 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                 int instrLength = instruction.getSize();
                 Map<String,Object>[] instrAttrs = instruction.getInstruction();
                 String instr = formatInstruction(instrAttrs);
-
-                p = fCallback.getDocument().insertDisassemblyLine(p, address, instrLength, functionOffset.toString(), instr, sourceFile, firstLine);
+                p = fCallback.getDocument().insertDisassemblyLine(p,
+                        address, instrLength, functionOffset.toString(),
+                        instr, sourceFile, firstLine);
                 if (p == null) break;
                 insertedAnyAddress = true;
             }
@@ -940,7 +941,8 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
             }
             catch (NumberFormatException e) {
                 if (!suppressError) {
-                    MessageDialog.openError(PlatformUI.getWorkbench().getDisplay().getActiveShell(), "Error", "Expression does not evaluate to an address");
+                    MessageDialog.openError(PlatformUI.getWorkbench().getDisplay().getActiveShell(),
+                            "Error", "Expression does not evaluate to an address");
                 }
             }
         }
