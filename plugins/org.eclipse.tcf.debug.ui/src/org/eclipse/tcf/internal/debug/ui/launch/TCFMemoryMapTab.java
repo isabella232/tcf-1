@@ -50,6 +50,45 @@ public class TCFMemoryMapTab extends AbstractLaunchConfigurationTab {
         setControl(composite);
     }
 
+    /**
+     * Create the memory map widget.
+     *
+     * @param composite The parent composite.
+     * @param node The TCF node.
+     *
+     * @return The memory map widget.
+     */
+    protected MemoryMapWidget createWidget(Composite composite, TCFNode node) {
+        return new MemoryMapWidget(composite, node);
+    }
+
+    /**
+     * Returns the memory map widget.
+     *
+     * @return The memory map widget.
+     */
+    protected final MemoryMapWidget getWidget() {
+        return widget;
+    }
+
+    /**
+     * Update the context for {@link MemoryMapWidget}.
+     * @return <code>true</code> if the widgets context combo was updated.
+     */
+    public boolean updateContext() {
+        if (widget != null) {
+            TCFNode node = null;
+            IAdaptable adaptable = DebugUITools.getDebugContext();
+            if (adaptable != null) {
+                node = (TCFNode)adaptable.getAdapter(TCFNode.class);
+            }
+            if (node != null) {
+                return widget.setTCFNode(node);
+            }
+        }
+        return false;
+    }
+
     public void setDefaults(ILaunchConfigurationWorkingCopy cfg) {
     }
 

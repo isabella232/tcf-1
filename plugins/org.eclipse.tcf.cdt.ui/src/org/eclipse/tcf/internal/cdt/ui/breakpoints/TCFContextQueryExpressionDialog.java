@@ -183,26 +183,43 @@ public class TCFContextQueryExpressionDialog extends SelectionDialog {
    }
 
    private boolean replaceParameter(String parameter, String replaceString, int index) {
+       String testChar = null;
+       int endLocation = 0;
+       if (replaceString.length() != 0 && expression.contains(replaceString))
+           return true;
        if (index != 0) {
-           String testChar = expression.substring(index+parameter.length(), index+1+parameter.length());
+           testChar = expression.substring(index+parameter.length(), index+1+parameter.length());
            if (!testChar.equals("=")) {
                return false;
            }
            testChar = expression.substring(index-1, index);
-           if (!testChar.equals(",")) {
+           if (!testChar.matches("[,/]"))
                return false;
-           }
-           else {
-               index-=1;
-           }
        }
-       int endLocation = expression.indexOf(',', index+1);
+       testChar = expression.substring(index+parameter.length()+1,index+parameter.length()+2);
+       if (testChar.equals("\"")) {
+           endLocation = expression.indexOf('"', index+parameter.length()+3);
+           if (endLocation != -1 && endLocation != (expression.length() -1)) {
+               testChar = expression.substring(endLocation+1, endLocation+2);
+               if (testChar.equals(","))
+                   endLocation++;
+           }
+           else
+               endLocation = -1;
+       }
+       else {
+           endLocation = expression.indexOf(',', index+1);
+       }
+
        if (endLocation == -1) {
            endLocation = expression.length();
+           testChar = expression.substring(index-1, index);
+           if (testChar.matches("[,]") && replaceString.length() == 0)
+               index-=1;
        }
-       else if (index == 0 && replaceString.length() == 0) {
+       else if (replaceString.length() == 0)
            endLocation++;
-       }
+
        String removeStr = expression.substring(index, endLocation);
        expression = expression.replace(removeStr, replaceString);
 

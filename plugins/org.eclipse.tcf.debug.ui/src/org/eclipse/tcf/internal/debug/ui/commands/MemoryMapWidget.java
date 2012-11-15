@@ -77,9 +77,9 @@ public class MemoryMapWidget {
         "File offset/section",
     };
 
-    private final TCFModel model;
-    private final IChannel channel;
-    private final TCFNode selection;
+    private TCFModel model;
+    private IChannel channel;
+    private TCFNode selection;
 
     private Combo ctx_text;
     private Table map_table;
@@ -210,6 +210,23 @@ public class MemoryMapWidget {
         return selected_mem_map_id;
     }
 
+    public boolean setTCFNode(TCFNode node) {
+        if (node == null && selection == null || node != null && node.equals(selection)) {
+            return false;
+        }
+        if (node != null) {
+            model = node.getModel();
+            channel = node.getChannel();
+            selection = node;
+        }
+        else {
+            model = null;
+            channel = null;
+            selection = null;
+        }
+        return true;
+    }
+
     private void createContextText(Composite parent) {
         Font font = parent.getFont();
         Composite composite = new Composite(parent, SWT.NONE);
@@ -300,6 +317,10 @@ public class MemoryMapWidget {
         table_viewer.setLabelProvider(new MapLabelProvider());
 
         createMapButtons(composite);
+    }
+
+    protected final TableViewer getViewer() {
+        return table_viewer;
     }
 
     private void createMapButtons(Composite parent) {
