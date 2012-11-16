@@ -49,11 +49,11 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.internal.cdt.ui.Activator;
@@ -81,6 +81,7 @@ public class TCFThreadFilterEditor {
         private final boolean fIsContainer;
         private final String fScopeId;
         private final String fSessionId;
+        private final String fBpGroup;
 
         Context(IRunControl.RunControlContext ctx, Context parent) {
             this(ctx, parent.fSessionId);
@@ -93,6 +94,7 @@ public class TCFThreadFilterEditor {
             fId = ctx.getID();
             fParentId = ctx.getParentID();
             fIsContainer = ctx.isContainer();
+            fBpGroup = ctx.getBPGroup();
         }
     }
 
@@ -182,10 +184,12 @@ public class TCFThreadFilterEditor {
 
         public Object[] getChildren(Object parent) {
             if (parent instanceof Context) {
-                return syncGetThreads((Context) parent);
+                Context[] children = syncGetThreads((Context) parent); 
+                return filterBPGroupContexts(children);
             }
             if (parent instanceof ILaunch) {
-                return syncGetContainers((TCFLaunch) parent);
+                Context[] children = syncGetContainers((TCFLaunch) parent);
+                return filterBPGroupContexts(children);                
             }
             if (parent instanceof ILaunchManager) {
                 return getLaunches();
@@ -193,6 +197,22 @@ public class TCFThreadFilterEditor {
             return new Object[0];
         }
 
+        private Context[] filterBPGroupContexts(Context[] children) {
+            List<Context> filteredChildren = new ArrayList<Context>(children.length);
+            for (Context child : children) {
+                if (child.fBpGroup != null ||
+                    getChildren(child).length != 0) 
+                {
+                    filteredChildren.add(child);
+                } 
+            }
+            if (filteredChildren.size() == children.length) {
+                return children;
+            } else {
+                return filteredChildren.toArray(new Context[filteredChildren.size()]);
+            }
+        }
+        
         public Object getParent(Object element) {
             if (element instanceof Context) {
                 Context ctx = (Context) element;
