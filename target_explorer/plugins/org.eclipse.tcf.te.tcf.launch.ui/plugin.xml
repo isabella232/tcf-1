@@ -130,7 +130,11 @@
                         operator="and" 
                         ifEmpty="false">
                      <and>
-                        <adapt type="org.eclipse.debug.ui.actions.ILaunchable"/>
+                        <test
+                              forcePluginActivation="true"
+                              property="org.eclipse.debug.core.launchable"
+                              value="run">
+                        </test>
                         <test 
                               forcePluginActivation="true"
                               property="org.eclipse.tcf.te.launch.core.isValidLaunchConfigType"
@@ -154,7 +158,11 @@
                         operator="and" 
                         ifEmpty="false">
                      <and>
-                        <adapt type="org.eclipse.debug.ui.actions.ILaunchable"/>
+                        <test
+                              forcePluginActivation="true"
+                              property="org.eclipse.debug.core.launchable"
+                              value="run">
+                        </test>
                         <test 
                               forcePluginActivation="true"
                               property="org.eclipse.tcf.te.launch.core.isValidLaunchConfigType"
