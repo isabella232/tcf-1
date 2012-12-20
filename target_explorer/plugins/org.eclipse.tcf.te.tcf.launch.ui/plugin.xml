@@ -130,11 +130,14 @@
                         operator="and" 
                         ifEmpty="false">
                      <and>
-                        <test
-                              forcePluginActivation="true"
-                              property="org.eclipse.debug.core.launchable"
-                              value="run">
-                        </test>
+                        <and>
+                           <with variable="org.eclipse.core.runtime.Platform">
+                              <test property="org.eclipse.core.runtime.bundleState"
+                                    args="org.eclipse.debug.core"
+                                    value="ACTIVE"/>
+                           </with>
+                           <test property="org.eclipse.debug.core.launchable" value="run"/>
+                        </and>				
                         <test 
                               forcePluginActivation="true"
                               property="org.eclipse.tcf.te.launch.core.isValidLaunchConfigType"
@@ -158,11 +161,14 @@
                         operator="and" 
                         ifEmpty="false">
                      <and>
-                        <test
-                              forcePluginActivation="true"
-                              property="org.eclipse.debug.core.launchable"
-                              value="run">
-                        </test>
+                        <and>
+                           <with variable="org.eclipse.core.runtime.Platform">
+                              <test property="org.eclipse.core.runtime.bundleState"
+                                    args="org.eclipse.debug.core"
+                                    value="ACTIVE"/>
+                           </with>
+                           <test property="org.eclipse.debug.core.launchable" value="run"/>
+                        </and>				
                         <test 
                               forcePluginActivation="true"
                               property="org.eclipse.tcf.te.launch.core.isValidLaunchConfigType"
