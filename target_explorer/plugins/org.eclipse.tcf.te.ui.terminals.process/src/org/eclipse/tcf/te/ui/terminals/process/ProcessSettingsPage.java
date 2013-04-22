@@ -184,4 +184,14 @@ public class ProcessSettingsPage implements ISettingsPage {
 		String selectedFile = SWTControlUtil.getText(processImageSelectorControl);
 		return selectedFile != null && !"".equals(selectedFile.trim()) && new Path(selectedFile).toFile().canRead(); //$NON-NLS-1$
 	}
+
+    public void addListener(Listener listener) {
+	    // TODO Auto-generated method stub
+	    
+    }
+
+    public void removeListener(Listener listener) {
+	    // TODO Auto-generated method stub
+	    
+    }
 }
