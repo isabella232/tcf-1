@@ -41,7 +41,7 @@
 
 		<!-- Common global properties -->
 		<adminDir>${env.WORKSPACE}/admin</adminDir>
-		<tcf-stream>development</tcf-stream>
+		<tcf-stream>1.1</tcf-stream>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- JaCoCo global properties -->
