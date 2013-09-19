@@ -171,6 +171,7 @@
 <!-- Menu contributions -->
    <extension point="org.eclipse.ui.menus">
    <!-- Project explorer menu contributions -->
+   <!--
       <menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?before=additions">
          <separator name="org.eclipse.tcf.te.tcf.launch.ui.remote.app.launch" visible="true"/>
          <command
@@ -232,7 +233,8 @@
             </visibleWhen>
          </command>
       </menuContribution>
-      
+   -->
+   
    <!-- Target explorer menu contributions -->
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?before=additions">
          <separator name="org.eclipse.tcf.te.tcf.launch.ui.remote.app.launch" visible="true"/>
