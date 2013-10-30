@@ -29,9 +29,9 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>org.eclipse.dash.maven</groupId>
-						<artifactId>eclipse-signing-maven-plugin</artifactId>
-						<version>1.0.5</version>
+						<groupId>org.eclipse.cbi.maven.plugins</groupId>
+						<artifactId>eclipse-jarsigner-plugin</artifactId>
+						<version>1.0.3</version>
 						<executions>
 							<!-- Pack the p2 repository. -->
 							<execution>
