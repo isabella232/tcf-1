@@ -484,9 +484,7 @@ public class TCFThreadFilterEditor {
                 if (fThreadViewer != null) {
                     fThreadViewer.refresh();
                     fFilteredContexts.clear();
-                    for (Context ctx : fContexts) {
-                    	fCheckHandler.updateParentCheckState(ctx);
-                    }
+                    setInitialCheckedState();
                 }
             }
         }
@@ -511,7 +509,7 @@ public class TCFThreadFilterEditor {
             else {
                 String result = null;
                 TCFContextQueryExpressionDialog dlg = new TCFContextQueryExpressionDialog(parentShell, attrsList, scopeExprCombo.getText());
-    
+
                 if (dlg.open() == Window.OK) {
                     result = dlg.getExpression();
                 }
