@@ -13,7 +13,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.tcf.terminals.core.interfaces.launcher.ITerminalsLauncher;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 
@@ -151,14 +150,12 @@ public class TerminalsSettings {
 	 */
 	public void load(ISettingsStore store) {
 		Assert.isNotNull(store);
-		localEcho = Boolean.parseBoolean(store.get("LocalEcho", Boolean.FALSE.toString())); //$NON-NLS-1$
-		lineSeparator = store.get("LineSeparator", null); //$NON-NLS-1$
-		if (store instanceof IPropertiesContainer) {
-			stdin = (OutputStream)((IPropertiesContainer)store).getProperty("stdin"); //$NON-NLS-1$
-			stdout = (InputStream)((IPropertiesContainer)store).getProperty("stdout"); //$NON-NLS-1$
-			stderr = (InputStream)((IPropertiesContainer)store).getProperty("stderr"); //$NON-NLS-1$
-			launcher = (ITerminalsLauncher)((IPropertiesContainer)store).getProperty("launcher"); //$NON-NLS-1$
-		}
+		localEcho = store.getBooleanProperty("LocalEcho"); //$NON-NLS-1$
+		lineSeparator = store.getStringProperty("LineSeparator"); //$NON-NLS-1$
+		stdin = (OutputStream)store.getProperty("stdin"); //$NON-NLS-1$
+		stdout = (InputStream)store.getProperty("stdout"); //$NON-NLS-1$
+		stderr = (InputStream)store.getProperty("stderr"); //$NON-NLS-1$
+		launcher = (ITerminalsLauncher)store.getProperty("launcher"); //$NON-NLS-1$
 	}
 
 	/**
@@ -168,13 +165,11 @@ public class TerminalsSettings {
 	 */
 	public void save(ISettingsStore store) {
 		Assert.isNotNull(store);
-		store.put("LocalEcho", Boolean.toString(localEcho)); //$NON-NLS-1$
-		store.put("LineSeparator", lineSeparator); //$NON-NLS-1$
-		if (store instanceof IPropertiesContainer) {
-			((IPropertiesContainer)store).setProperty("stdin", stdin); //$NON-NLS-1$
-			((IPropertiesContainer)store).setProperty("stdout", stdout); //$NON-NLS-1$
-			((IPropertiesContainer)store).setProperty("stderr", stderr); //$NON-NLS-1$
-			((IPropertiesContainer)store).setProperty("launcher", launcher); //$NON-NLS-1$
-		}
+		store.setProperty("LocalEcho", localEcho); //$NON-NLS-1$
+		store.setProperty("LineSeparator", lineSeparator); //$NON-NLS-1$
+		store.setProperty("stdin", stdin); //$NON-NLS-1$
+		store.setProperty("stdout", stdout); //$NON-NLS-1$
+		store.setProperty("stderr", stderr); //$NON-NLS-1$
+		store.setProperty("launcher", launcher); //$NON-NLS-1$
 	}
 }

@@ -22,12 +22,12 @@ import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnecto
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
-import org.eclipse.tcf.te.ui.terminals.internal.SettingsStore;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.serial.controls.SerialConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.serial.nls.Messages;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
+import org.eclipse.tm.internal.terminal.provisional.api.SettingsStore;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalConnectorExtension;
 import org.eclipse.tm.internal.terminal.serial.SerialSettings;
 

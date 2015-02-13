@@ -12,7 +12,6 @@ package org.eclipse.tcf.te.ui.terminals.process;
 import org.eclipse.cdt.utils.pty.PTY;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalServiceOutputStreamMonitorListener;
-import org.eclipse.tcf.te.ui.terminals.internal.SettingsStore;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 
 /**
@@ -260,19 +259,17 @@ public class ProcessSettings {
 	 */
 	public void load(ISettingsStore store) {
 		Assert.isNotNull(store);
-		image = store.get("Path", null);//$NON-NLS-1$
-		arguments = store.get("Arguments", null); //$NON-NLS-1$
-		localEcho = Boolean.parseBoolean(store.get("LocalEcho", Boolean.FALSE.toString())); //$NON-NLS-1$
-		mergeWithNativeEnvironment = Boolean.parseBoolean(store.get("MergeWithNativeEnvironment", Boolean.FALSE.toString())); //$NON-NLS-1$
-		lineSeparator = store.get("LineSeparator", null); //$NON-NLS-1$
-		workingDir = store.get("WorkingDir", null); //$NON-NLS-1$
-		if (store instanceof SettingsStore) {
-			process = (Process)((SettingsStore)store).getSettings().get("Process"); //$NON-NLS-1$
-			pty = (PTY)((SettingsStore)store).getSettings().get("PTY"); //$NON-NLS-1$
-			stdoutListeners = (ITerminalServiceOutputStreamMonitorListener[])((SettingsStore)store).getSettings().get("StdOutListeners"); //$NON-NLS-1$
-			stderrListeners = (ITerminalServiceOutputStreamMonitorListener[])((SettingsStore)store).getSettings().get("StdErrListeners"); //$NON-NLS-1$
-			environment = (String[])((SettingsStore)store).getSettings().get("Environment"); //$NON-NLS-1$
-		}
+		image = store.getStringProperty("Path");//$NON-NLS-1$
+		arguments = store.getStringProperty("Arguments"); //$NON-NLS-1$
+		localEcho = store.getBooleanProperty("LocalEcho"); //$NON-NLS-1$
+		mergeWithNativeEnvironment = store.getBooleanProperty("MergeWithNativeEnvironment"); //$NON-NLS-1$
+		lineSeparator = store.getStringProperty("LineSeparator"); //$NON-NLS-1$
+		workingDir = store.getStringProperty("WorkingDir"); //$NON-NLS-1$
+		process = (Process)store.getProperty("Process"); //$NON-NLS-1$
+		pty = (PTY)store.getProperty("PTY"); //$NON-NLS-1$
+		stdoutListeners = (ITerminalServiceOutputStreamMonitorListener[])store.getProperty("StdOutListeners"); //$NON-NLS-1$
+		stderrListeners = (ITerminalServiceOutputStreamMonitorListener[])store.getProperty("StdErrListeners"); //$NON-NLS-1$
+		environment = (String[])store.getProperty("Environment"); //$NON-NLS-1$
 	}
 
 	/**
@@ -282,18 +279,16 @@ public class ProcessSettings {
 	 */
 	public void save(ISettingsStore store) {
 		Assert.isNotNull(store);
-		store.put("Path", image);//$NON-NLS-1$
-		store.put("Arguments", arguments); //$NON-NLS-1$
-		store.put("LocalEcho", Boolean.toString(localEcho)); //$NON-NLS-1$
-		store.put("MergeWithNativeEnvironment", Boolean.toString(mergeWithNativeEnvironment)); //$NON-NLS-1$
-		store.put("LineSeparator", lineSeparator); //$NON-NLS-1$
-		store.put("WorkingDir", workingDir); //$NON-NLS-1$
-		if (store instanceof SettingsStore) {
-			((SettingsStore)store).getSettings().put("Process", process); //$NON-NLS-1$
-			((SettingsStore)store).getSettings().put("PTY", pty); //$NON-NLS-1$
-			((SettingsStore)store).getSettings().put("StdOutListeners", stdoutListeners); //$NON-NLS-1$
-			((SettingsStore)store).getSettings().put("StdErrListeners", stderrListeners); //$NON-NLS-1$
-			((SettingsStore)store).getSettings().put("Environment", environment); //$NON-NLS-1$
-		}
+		store.setProperty("Path", image);//$NON-NLS-1$
+		store.setProperty("Arguments", arguments); //$NON-NLS-1$
+		store.setProperty("LocalEcho", localEcho); //$NON-NLS-1$
+		store.setProperty("MergeWithNativeEnvironment", mergeWithNativeEnvironment); //$NON-NLS-1$
+		store.setProperty("LineSeparator", lineSeparator); //$NON-NLS-1$
+		store.setProperty("WorkingDir", workingDir); //$NON-NLS-1$
+		store.setProperty("Process", process); //$NON-NLS-1$
+		store.setProperty("PTY", pty); //$NON-NLS-1$
+		store.setProperty("StdOutListeners", stdoutListeners); //$NON-NLS-1$
+		store.setProperty("StdErrListeners", stderrListeners); //$NON-NLS-1$
+		store.setProperty("Environment", environment); //$NON-NLS-1$
 	}
 }

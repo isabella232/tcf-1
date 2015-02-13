@@ -14,7 +14,6 @@ import java.io.OutputStream;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalServiceOutputStreamMonitorListener;
-import org.eclipse.tcf.te.ui.terminals.internal.SettingsStore;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 
 /**
@@ -171,15 +170,13 @@ public class StreamsSettings {
 	 */
 	public void load(ISettingsStore store) {
 		Assert.isNotNull(store);
-		localEcho = Boolean.parseBoolean(store.get("LocalEcho", Boolean.FALSE.toString())); //$NON-NLS-1$
-		lineSeparator = store.get("LineSeparator", null); //$NON-NLS-1$
-		if (store instanceof SettingsStore) {
-			stdin = (OutputStream)((SettingsStore)store).getSettings().get("stdin"); //$NON-NLS-1$
-			stdout = (InputStream)((SettingsStore)store).getSettings().get("stdout"); //$NON-NLS-1$
-			stderr = (InputStream)((SettingsStore)store).getSettings().get("stderr"); //$NON-NLS-1$
-			stdoutListeners = (ITerminalServiceOutputStreamMonitorListener[])((SettingsStore)store).getSettings().get("StdOutListeners"); //$NON-NLS-1$
-			stderrListeners = (ITerminalServiceOutputStreamMonitorListener[])((SettingsStore)store).getSettings().get("StdErrListeners"); //$NON-NLS-1$
-		}
+		localEcho = store.getBooleanProperty("LocalEcho"); //$NON-NLS-1$
+		lineSeparator = store.getStringProperty("LineSeparator"); //$NON-NLS-1$
+		stdin = (OutputStream)store.getProperty("stdin"); //$NON-NLS-1$
+		stdout = (InputStream)store.getProperty("stdout"); //$NON-NLS-1$
+		stderr = (InputStream)store.getProperty("stderr"); //$NON-NLS-1$
+		stdoutListeners = (ITerminalServiceOutputStreamMonitorListener[])store.getProperty("StdOutListeners"); //$NON-NLS-1$
+		stderrListeners = (ITerminalServiceOutputStreamMonitorListener[])store.getProperty("StdErrListeners"); //$NON-NLS-1$
 	}
 
 	/**
@@ -189,14 +186,12 @@ public class StreamsSettings {
 	 */
 	public void save(ISettingsStore store) {
 		Assert.isNotNull(store);
-		store.put("LocalEcho", Boolean.toString(localEcho)); //$NON-NLS-1$
-		store.put("LineSeparator", lineSeparator); //$NON-NLS-1$
-		if (store instanceof SettingsStore) {
-			((SettingsStore)store).getSettings().put("stdin", stdin); //$NON-NLS-1$
-			((SettingsStore)store).getSettings().put("stdout", stdout); //$NON-NLS-1$
-			((SettingsStore)store).getSettings().put("stderr", stderr); //$NON-NLS-1$
-			((SettingsStore)store).getSettings().put("StdOutListeners", stdoutListeners); //$NON-NLS-1$
-			((SettingsStore)store).getSettings().put("StdErrListeners", stderrListeners); //$NON-NLS-1$
-		}
+		store.setProperty("LocalEcho", localEcho); //$NON-NLS-1$
+		store.setProperty("LineSeparator", lineSeparator); //$NON-NLS-1$
+		store.setProperty("stdin", stdin); //$NON-NLS-1$
+		store.setProperty("stdout", stdout); //$NON-NLS-1$
+		store.setProperty("stderr", stderr); //$NON-NLS-1$
+		store.setProperty("StdOutListeners", stdoutListeners); //$NON-NLS-1$
+		store.setProperty("StdErrListeners", stderrListeners); //$NON-NLS-1$
 	}
 }

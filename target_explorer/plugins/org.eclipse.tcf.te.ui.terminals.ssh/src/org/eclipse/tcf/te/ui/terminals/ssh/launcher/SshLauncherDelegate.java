@@ -23,12 +23,12 @@ import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnecto
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
-import org.eclipse.tcf.te.ui.terminals.internal.SettingsStore;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.ssh.controls.SshWizardConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.ssh.nls.Messages;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
+import org.eclipse.tm.internal.terminal.provisional.api.SettingsStore;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalConnectorExtension;
 import org.eclipse.tm.internal.terminal.ssh.SshSettings;
 
@@ -165,7 +165,7 @@ public class SshLauncherDelegate extends AbstractLauncherDelegate {
 		sshSettings.save(store);
 
 		// MWE TODO make sure this is NOT passed outside as this is plain text
-		store.put("Password", password); //$NON-NLS-1$
+		store.setProperty("Password", password); //$NON-NLS-1$
 
 		// Construct the terminal connector instance
 		ITerminalConnector connector = TerminalConnectorExtension.makeTerminalConnector(connectorId);

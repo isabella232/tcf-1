@@ -38,7 +38,6 @@ import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnecto
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
-import org.eclipse.tcf.te.ui.terminals.internal.SettingsStore;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.local.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.terminals.local.controls.LocalWizardConfigurationPanel;
@@ -46,6 +45,7 @@ import org.eclipse.tcf.te.ui.terminals.local.showin.interfaces.IPreferenceKeys;
 import org.eclipse.tcf.te.ui.terminals.process.ProcessSettings;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
+import org.eclipse.tm.internal.terminal.provisional.api.SettingsStore;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalConnectorExtension;
 import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.PlatformUI;
