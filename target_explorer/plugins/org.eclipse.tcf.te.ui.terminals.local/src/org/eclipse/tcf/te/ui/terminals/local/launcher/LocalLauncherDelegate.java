@@ -43,9 +43,9 @@ import org.eclipse.tcf.te.ui.terminals.local.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.terminals.local.controls.LocalWizardConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.local.showin.interfaces.IPreferenceKeys;
 import org.eclipse.tcf.te.ui.terminals.process.ProcessSettings;
-import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.ISettings;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
-import org.eclipse.tm.internal.terminal.provisional.api.SettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.Settings;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalConnectorExtension;
 import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.PlatformUI;
@@ -337,7 +337,7 @@ public class LocalLauncherDelegate extends AbstractLauncherDelegate {
 		Assert.isTrue(image != null || process != null);
 
 		// Construct the terminal settings store
-		ISettingsStore store = new SettingsStore();
+		ISettings store = new Settings();
 
 		// Construct the process settings
 		ProcessSettings processSettings = new ProcessSettings();

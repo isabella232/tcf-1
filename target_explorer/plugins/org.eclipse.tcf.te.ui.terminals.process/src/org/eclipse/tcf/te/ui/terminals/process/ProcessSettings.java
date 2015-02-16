@@ -12,7 +12,7 @@ package org.eclipse.tcf.te.ui.terminals.process;
 import org.eclipse.cdt.utils.pty.PTY;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalServiceOutputStreamMonitorListener;
-import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.ISettings;
 
 /**
  * Process connector settings implementation.
@@ -257,7 +257,7 @@ public class ProcessSettings {
 	 *
 	 * @param store The settings store. Must not be <code>null</code>.
 	 */
-	public void load(ISettingsStore store) {
+	public void load(ISettings store) {
 		Assert.isNotNull(store);
 		image = store.getStringProperty("Path");//$NON-NLS-1$
 		arguments = store.getStringProperty("Arguments"); //$NON-NLS-1$
@@ -277,7 +277,7 @@ public class ProcessSettings {
 	 *
 	 * @param store The settings store. Must not be <code>null</code>.
 	 */
-	public void save(ISettingsStore store) {
+	public void save(ISettings store) {
 		Assert.isNotNull(store);
 		store.setProperty("Path", image);//$NON-NLS-1$
 		store.setProperty("Arguments", arguments); //$NON-NLS-1$

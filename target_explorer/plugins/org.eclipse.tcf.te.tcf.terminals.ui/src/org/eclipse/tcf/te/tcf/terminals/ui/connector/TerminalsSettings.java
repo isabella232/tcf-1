@@ -14,7 +14,7 @@ import java.io.OutputStream;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.te.tcf.terminals.core.interfaces.launcher.ITerminalsLauncher;
-import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.ISettings;
 
 /**
  * Terminals connector settings implementation.
@@ -148,7 +148,7 @@ public class TerminalsSettings {
 	 *
 	 * @param store The settings store. Must not be <code>null</code>.
 	 */
-	public void load(ISettingsStore store) {
+	public void load(ISettings store) {
 		Assert.isNotNull(store);
 		localEcho = store.getBooleanProperty("LocalEcho"); //$NON-NLS-1$
 		lineSeparator = store.getStringProperty("LineSeparator"); //$NON-NLS-1$
@@ -163,7 +163,7 @@ public class TerminalsSettings {
 	 *
 	 * @param store The settings store. Must not be <code>null</code>.
 	 */
-	public void save(ISettingsStore store) {
+	public void save(ISettings store) {
 		Assert.isNotNull(store);
 		store.setProperty("LocalEcho", localEcho); //$NON-NLS-1$
 		store.setProperty("LineSeparator", lineSeparator); //$NON-NLS-1$

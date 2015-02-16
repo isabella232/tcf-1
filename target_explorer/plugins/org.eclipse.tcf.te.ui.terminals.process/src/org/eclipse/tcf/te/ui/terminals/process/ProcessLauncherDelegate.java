@@ -21,9 +21,9 @@ import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnecto
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
-import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.ISettings;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
-import org.eclipse.tm.internal.terminal.provisional.api.SettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.Settings;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalConnectorExtension;
 
 /**
@@ -96,7 +96,7 @@ public class ProcessLauncherDelegate extends AbstractLauncherDelegate {
 		Assert.isTrue(image != null || process != null);
 
 		// Construct the terminal settings store
-		ISettingsStore store = new SettingsStore();
+		ISettings store = new Settings();
 
 		// Construct the process settings
 		ProcessSettings processSettings = new ProcessSettings();

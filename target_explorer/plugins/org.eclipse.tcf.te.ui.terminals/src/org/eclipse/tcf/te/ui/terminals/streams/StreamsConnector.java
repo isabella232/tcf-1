@@ -10,7 +10,7 @@
 package org.eclipse.tcf.te.ui.terminals.streams;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.ISettings;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalControl;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalState;
 import org.eclipse.ui.services.IDisposable;
@@ -103,7 +103,7 @@ public class StreamsConnector extends AbstractStreamsConnector implements IDispo
 	 * @see org.eclipse.tcf.internal.terminal.provisional.api.provider.TerminalConnectorImpl#load(org.eclipse.tcf.internal.terminal.provisional.api.ISettingsStore)
 	 */
 	@Override
-	public void load(ISettingsStore store) {
+	public void load(ISettings store) {
 		settings.load(store);
 	}
 
@@ -111,7 +111,7 @@ public class StreamsConnector extends AbstractStreamsConnector implements IDispo
 	 * @see org.eclipse.tcf.internal.terminal.provisional.api.provider.TerminalConnectorImpl#save(org.eclipse.tcf.internal.terminal.provisional.api.ISettingsStore)
 	 */
 	@Override
-	public void save(ISettingsStore store) {
+	public void save(ISettings store) {
 		settings.save(store);
 	}
 }

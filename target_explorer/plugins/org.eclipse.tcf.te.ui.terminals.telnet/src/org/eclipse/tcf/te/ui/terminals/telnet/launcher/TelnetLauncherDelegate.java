@@ -26,9 +26,9 @@ import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.telnet.controls.TelnetWizardConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.telnet.nls.Messages;
-import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.ISettings;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
-import org.eclipse.tm.internal.terminal.provisional.api.SettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.Settings;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalConnectorExtension;
 import org.eclipse.tm.internal.terminal.telnet.TelnetSettings;
 
@@ -145,7 +145,7 @@ public class TelnetLauncherDelegate extends AbstractLauncherDelegate {
 		port = Integer.toString(Integer.decode(port).intValue() + portOffset);
 
 		// Construct the terminal settings store
-		ISettingsStore store = new SettingsStore();
+		ISettings store = new Settings();
 
 		// Construct the telnet settings
 		TelnetSettings telnetSettings = new TelnetSettings();

@@ -34,9 +34,9 @@ import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
-import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.ISettings;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
-import org.eclipse.tm.internal.terminal.provisional.api.SettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.Settings;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalConnectorExtension;
 
 /**
@@ -136,7 +136,7 @@ public class TerminalsLauncherDelegate extends AbstractLauncherDelegate {
 		ITerminalsLauncher launcher = (ITerminalsLauncher)properties.get(ITerminalsConnectorConstants.PROP_DATA);
 
 		// Construct the terminal settings store
-		ISettingsStore store = new SettingsStore();
+		ISettings store = new Settings();
 
 		// Construct the terminals settings
 		TerminalsSettings terminalsSettings = new TerminalsSettings();

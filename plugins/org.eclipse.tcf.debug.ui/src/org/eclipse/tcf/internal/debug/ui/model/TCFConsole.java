@@ -32,7 +32,7 @@ import org.eclipse.tm.internal.terminal.control.ITerminalListener;
 import org.eclipse.tm.internal.terminal.control.ITerminalViewControl;
 import org.eclipse.tm.internal.terminal.control.TerminalViewControlFactory;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsPage;
-import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.ISettings;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalControl;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalState;
@@ -216,7 +216,7 @@ class TCFConsole extends AbstractConsole {
         }
 
         @Override
-        public void save(ISettingsStore store) {
+        public void save(ISettings store) {
         }
 
         @Override
@@ -225,7 +225,7 @@ class TCFConsole extends AbstractConsole {
         }
 
         @Override
-        public void load(ISettingsStore store) {
+        public void load(ISettings store) {
         }
 
         @Override

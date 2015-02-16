@@ -31,7 +31,7 @@ import org.eclipse.tcf.te.ui.terminals.streams.AbstractStreamsConnector;
 import org.eclipse.tm.internal.terminal.emulator.VT100Emulator;
 import org.eclipse.tm.internal.terminal.emulator.VT100TerminalControl;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsPage;
-import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.ISettings;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalControl;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalState;
 
@@ -272,7 +272,7 @@ public class ProcessConnector extends AbstractStreamsConnector {
 	 * @see org.eclipse.tcf.internal.terminal.provisional.api.provider.TerminalConnectorImpl#load(org.eclipse.tcf.internal.terminal.provisional.api.ISettingsStore)
 	 */
 	@Override
-	public void load(ISettingsStore store) {
+	public void load(ISettings store) {
 		settings.load(store);
 	}
 
@@ -280,7 +280,7 @@ public class ProcessConnector extends AbstractStreamsConnector {
 	 * @see org.eclipse.tcf.internal.terminal.provisional.api.provider.TerminalConnectorImpl#save(org.eclipse.tcf.internal.terminal.provisional.api.ISettingsStore)
 	 */
 	@Override
-	public void save(ISettingsStore store) {
+	public void save(ISettings store) {
 		settings.save(store);
 	}
 

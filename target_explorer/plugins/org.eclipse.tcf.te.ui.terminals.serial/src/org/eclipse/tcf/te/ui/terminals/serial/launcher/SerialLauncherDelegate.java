@@ -25,9 +25,9 @@ import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.serial.controls.SerialConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.serial.nls.Messages;
-import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.ISettings;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
-import org.eclipse.tm.internal.terminal.provisional.api.SettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.Settings;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalConnectorExtension;
 import org.eclipse.tm.internal.terminal.serial.SerialSettings;
 
@@ -131,7 +131,7 @@ public class SerialLauncherDelegate extends AbstractLauncherDelegate {
 		String flowcontrol = (String)properties.get(ITerminalsConnectorConstants.PROP_SERIAL_FLOW_CONTROL);
 
 		// Construct the terminal settings store
-		ISettingsStore store = new SettingsStore();
+		ISettings store = new Settings();
 
 		// Construct the serial settings
 		SerialSettings serialSettings = new SerialSettings();
