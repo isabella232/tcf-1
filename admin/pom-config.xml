@@ -62,7 +62,7 @@
         <ptp-remote-site>http://download.eclipse.org/tools/ptp/builds/remote/2.0.0</ptp-remote-site>
 		<rxtx-site>http://archive.eclipse.org/tm/updates/rxtx</rxtx-site>
 		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20150124073747/repository</orbit-site>
-		<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/latest/</swtbot-site>
+		<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/2.3.0/</swtbot-site>
   	</properties>
 
 	<repositories>
